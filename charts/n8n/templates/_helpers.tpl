@@ -73,6 +73,30 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 {{- end }}
 
+{{- define "n8n-worker.pvc" -}}
+{{- if or (not .Values.worker.persistence.enabled) (eq .Values.worker.persistence.type "emptyDir") -}}
+          emptyDir: {}
+{{- else if and .Values.worker.persistence.enabled .Values.worker.persistence.existingClaim -}}
+          persistentVolumeClaim:
+            claimName: {{ .Values.worker.persistence.existingClaim }}
+{{- else if and .Values.worker.persistence.enabled (eq .Values.worker.persistence.type "dynamic")  -}}
+          persistentVolumeClaim:
+            claimName: {{ include "n8n.fullname" . }}-worker
+{{- end }}
+{{- end }}
+
+{{- define "n8n-webhook.pvc" -}}
+{{- if or (not .Values.webhook.persistence.enabled) (eq .Values.webhook.persistence.type "emptyDir") -}}
+          emptyDir: {}
+{{- else if and .Values.webhook.persistence.enabled .Values.webhook.persistence.existingClaim -}}
+          persistentVolumeClaim:
+            claimName: {{ .Values.webhook.persistence.existingClaim }}
+{{- else if and .Values.webhook.persistence.enabled (eq .Values.webhook.persistence.type "dynamic")  -}}
+          persistentVolumeClaim:
+            claimName: {{ include "n8n.fullname" . }}-webhook
+{{- end }}
+{{- end }}
+
 
 {{/* Create environment variables from yaml tree */}}
 {{- define "toEnvVars" -}}
